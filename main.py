@@ -1,5 +1,5 @@
 def main():
-    print("Hello from myproject!")
+    print(",".join(["Hello", "Andrey!"]))
 
 
 if __name__ == "__main__":
