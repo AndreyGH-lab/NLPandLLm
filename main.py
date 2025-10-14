@@ -1,132 +1,39 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-class Value:
-    """ stores a single scalar value and its gradient """
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def __init__(self, data, _children=(), _op=''):
-        self.data = data
-        self.grad = 0
-        self._backward = lambda: None  # function to propagate gradients
-        self._prev = set(_children)  # set of parent Value nodes
-        self._op = _op  
+net_seq = nn.Sequential(
+    nn.Linear(in_features=3, out_features=5),
+    nn.Sigmoid(),
+    nn.Linear(in_features=5, out_features=2),
+)
 
-    def __add__(self, other):
-        other = other if isinstance(other, Value) else Value(other)
-        out = Value(self.data + other.data, _children=(self, other), _op='+')
+net_seq.to(device)
+x = torch.randn(1, 3).to(device)
+y_seq = net_seq(x)
+print("net_seq output:", y_seq)
+print()
 
-        def _backward():
-            self.grad += 1.0 * out.grad
-            other.grad += 1.0 * out.grad
-        out._backward = _backward
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(in_features=3, out_features=5)
+        self.fc2 = nn.Linear(in_features=5, out_features=2)
+    def forward(self, x):
+        x = self.fc1(x)
+        return F.sigmoid(self.fc2(x))
 
-        return out
+net_model = Model()
+net_model.to(device)
+y_model = net_model(x)
+print("net_model output:", y_model)
+print()
 
-    def __mul__(self, other):
-        other = other if isinstance(other, Value) else Value(other)
-        out = Value(self.data * other.data, _children=(self, other), _op='*')
+total_params_seq = sum(p.numel() for p in net_seq.parameters() if p.requires_grad)
+total_params_model = sum(p.numel() for p in net_model.parameters() if p.requires_grad)
 
-        def _backward():
-            self.grad += other.data * out.grad
-            other.grad += self.data * out.grad
-        out._backward = _backward
-
-        return out
-
-    def __pow__(self, other):
-        assert isinstance(other, (int, float)), "only supporting int/float powers for now"
-        out = Value(self.data ** other, _children=(self,), _op='**')
-
-        def _backward():
-            self.grad += (other * (self.data ** (other - 1))) * out.grad
-        out._backward = _backward
-
-        return out
-
-    def relu(self):
-        out = Value(max(0, self.data), _children=(self,), _op='ReLU')
-
-        def _backward():
-            self.grad += (1.0 if self.data > 0 else 0.0) * out.grad
-        out._backward = _backward
-
-        return out
-
-    def backward(self):
-        topo = []
-        visited = set()
-
-        def build_topo(v):
-            if v not in visited:
-                visited.add(v)
-                for child in v._prev:
-                    build_topo(child)
-                topo.append(v)
-
-        build_topo(self)
-
-
-        self.grad = 1.0
-        for v in reversed(topo):
-            v._backward()
-
-    def __neg__(self):  # -self
-        return self * -1
-
-    def __radd__(self, other):  
-        return self + other
-
-    def __sub__(self, other):  
-        return self + (-other)
-
-    def __rsub__(self, other):  
-        return other + (-self)
-
-    def __rmul__(self, other):  
-        return self * other
-
-    def __truediv__(self, other):  
-        return self * (other if isinstance(other, Value) else Value(other)) ** -1
-
-    def __rtruediv__(self, other):  
-        return (other if isinstance(other, Value) else Value(other)) * self ** -1
-
-    def __repr__(self):
-        return f"Value(data={self.data}, grad={self.grad})"
-
-
-
-
-def test_sanity_check():
-    x = Value(-4.0)
-    z = 2 * x + 2 + x
-    q = z.relu() + z * x
-    h = (z * z).relu()
-    y = h + q + q * x
-    y.backward()
-    xmg, ymg = x, y
-
-    x = torch.Tensor([-4.0]).double()
-    x.requires_grad = True
-    z = 2 * x + 2 + x
-    q = z.relu() + z * x
-    h = (z * z).relu()
-    y = h + q + q * x
-    y.backward()
-    xpt, ypt = x, y
-
-    assert abs(ymg.data - ypt.data.item()) < 1e-6
-    print(xmg, xpt, xpt.grad)
-    assert abs(xmg.grad - xpt.grad.item()) < 1e-6
-
-
-
-if __name__ == "__main__":
-    a = Value(-4.0)
-    b = Value(2.0)
-    d = Value(3.0)
-
-    c = a + b
-    e = c * d
-    e.backward()
-
-    test_sanity_check()
+print("trainable params")
+print(f"net_seq : {total_params_seq}")
+print(f"net_model : {total_params_model}")
