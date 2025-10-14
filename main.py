@@ -169,6 +169,6 @@ if __name__ == "__main__":
     e = c * d
     e.backward()
 
-    print(a, b, c, d, e)
+    #print(a, b, c, d, e)
     test_sanity_check()
     test_more_ops()
