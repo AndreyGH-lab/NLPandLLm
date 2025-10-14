@@ -102,19 +102,50 @@
 
 #task4
 
+# import torch
+
+# class Neuron(torch.nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#         self.fc = torch.nn.Linear(2,1)
+#         self.fc.weight.data = torch.tensor([[1.0, 1.0]])
+#         self.fc.bias.data = torch.tensor([-0.5])
+#     def forward(self, x):
+#         z = self.fc(x)
+#         return(torch.heaviside(z, torch.tensor([0.0])))
+# neuron = Neuron()
+# print(neuron.fc.weight, neuron.fc.bias)
+
+# x00 = torch.tensor([0.0, 0.0])
+# x01 = torch.tensor([0.0, 1.0])
+# x10 = torch.tensor([1.0, 0.0])
+# x11 = torch.tensor([1.0, 1.0])
+# print(neuron(x00))
+# print(neuron(x01))
+# print(neuron(x10))
+# print(neuron(x11))
+
+#-----------------------------------------------
+#task 5
+
 import torch
 
-class Neuron(torch.nn.Module):
+class XORNeuron(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc = torch.nn.Linear(2,1)
-        self.fc.weight.data = torch.tensor([[1.0, 1.0]])
-        self.fc.bias.data = torch.tensor([-0.5])
+        self.hidden = torch.nn.Linear(2,2)
+        self.output = torch.nn.Linear(2,1)
+        self.hidden.weight.data = torch.tensor([[1.0, 1.0], [1.0, 1.0]])
+        self.hidden.bias.data = torch.tensor([-0.5, -1.5])
+
+        self.output.weight.data = torch.tensor([[1.0, -1.0]])
+        self.output.bias.data = torch.tensor([-0.5])
     def forward(self, x):
-        z = self.fc(x)
-        return(torch.heaviside(z, torch.tensor([0.0])))
-neuron = Neuron()
-print(neuron.fc.weight, neuron.fc.bias)
+        hidden_out = torch.heaviside(self.hidden(x), torch.tensor([0.0]))
+        return torch.heaviside(self.output(hidden_out), torch.tensor([0.0]))
+neuron = XORNeuron()
+print(neuron.hidden.weight, neuron.hidden.bias)
+print(neuron.output.weight, neuron.output.bias)
 
 x00 = torch.tensor([0.0, 0.0])
 x01 = torch.tensor([0.0, 1.0])
@@ -124,4 +155,3 @@ print(neuron(x00))
 print(neuron(x01))
 print(neuron(x10))
 print(neuron(x11))
-
