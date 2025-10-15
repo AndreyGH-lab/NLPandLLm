@@ -198,39 +198,46 @@
 
 #task 7
 
-import torch
+# import torch
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# device = "cuda" if torch.cuda.is_available() else "cpu"
 
-def find_max_tensor_size(dtype):
-    print(f"\n Проверяем тип {dtype}:")
-    n = 10_000  
-    step = n
-    last_ok = 0
+# def find_max_tensor_size(dtype):
+#     print(f"\n Проверяем тип {dtype}:")
+#     n = 10_000  
+#     step = n
+#     last_ok = 0
 
-    while True:
-        try:
-            x = torch.empty((n,), dtype=dtype, device=device)
-            last_ok = n
-            n += step
-        except RuntimeError as e:
-            print(f"Ошибка при размере {n:,}: {e}")
-            break
+#     while True:
+#         try:
+#             x = torch.empty((n,), dtype=dtype, device=device)
+#             last_ok = n
+#             n += step
+#         except RuntimeError as e:
+#             print(f"Ошибка при размере {n:,}: {e}")
+#             break
 
-    print(f"Максимальный размер для {dtype}: {last_ok:,} элементов")
-    bytes_per_element = torch.tensor([], dtype=dtype).element_size()
-    total_mb = last_ok * bytes_per_element / 1024**2
-    print(f"~{total_mb:.2f} МБ памяти")
-    return last_ok
+#     print(f"Максимальный размер для {dtype}: {last_ok:,} элементов")
+#     bytes_per_element = torch.tensor([], dtype=dtype).element_size()
+#     total_mb = last_ok * bytes_per_element / 1024**2
+#     print(f"~{total_mb:.2f} МБ памяти")
+#     return last_ok
 
-results = {}
-for dtype in [torch.float32, torch.float64, torch.float16, torch.int32, torch.int64]:
-    results[str(dtype)] = find_max_tensor_size(dtype)
+# results = {}
+# for dtype in [torch.float32, torch.float64, torch.float16, torch.int32, torch.int64]:
+#     results[str(dtype)] = find_max_tensor_size(dtype)
 
-print("\n Результаты:")
-for k, v in results.items():
-    print(f"{k}: {v:,} элементов")
+# print("\n Результаты:")
+# for k, v in results.items():
+#     print(f"{k}: {v:,} элементов")
 
+#Ответы на вопросы:
 
+# Вопрос 1: Только однослойные нейронные сети (перцептроны) могут иметь линейную разделяющую поверхность, 
+# потому что у них нет скрытых слоёв и они могут проводить только прямую линию (или плоскость) между классами.
+
+# Вопрос 2. Нет, не имеет смысла соединять такие нейроны с линейной функцией активации, 
+# потому что даже если сделать несколько слоёв, всё равно получится одно линейное преобразование — сеть не 
+# сможет обучиться сложным, нелинейным зависимостям.
 
 
