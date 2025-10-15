@@ -162,36 +162,74 @@
 
 #task 6
 
+# import torch
+
+# class XOR(torch.nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#     def forward(self, x):
+#         x1 = x[0]
+#         x2 = x[1]
+
+#         # первый нейрон — OR
+#         n1 = torch.heaviside(1*x1 + 1*x2 - 0.5, torch.tensor([0.0]))
+
+#         # второй нейрон — AND
+#         n2 = torch.heaviside(1*x1 + 1*x2 - 1.5, torch.tensor([0.0]))
+
+#         # третий нейрон — XOR = neuron( n1 - n2 - 0.5 )
+#         y = torch.heaviside(1*n1 - 1*n2 - 0.5, torch.tensor([0.0]))
+#         return y
+
+
+# xor = XOR()
+
+# x00 = torch.tensor([0.0, 0.0])
+# x01 = torch.tensor([0.0, 1.0])
+# x10 = torch.tensor([1.0, 0.0])
+# x11 = torch.tensor([1.0, 1.0])
+
+# print("(0, 0) :", xor(x00))
+# print("(0, 1) :", xor(x01))
+# print("(1, 0) :", xor(x10))
+# print("(1, 1) :", xor(x11))
+
+#-------------------------------------------------
+
+#task 7
+
 import torch
 
-class XOR(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-    def forward(self, x):
-        x1 = x[0]
-        x2 = x[1]
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        # первый нейрон — OR
-        n1 = torch.heaviside(1*x1 + 1*x2 - 0.5, torch.tensor([0.0]))
+def find_max_tensor_size(dtype):
+    print(f"\n Проверяем тип {dtype}:")
+    n = 10_000  
+    step = n
+    last_ok = 0
 
-        # второй нейрон — AND
-        n2 = torch.heaviside(1*x1 + 1*x2 - 1.5, torch.tensor([0.0]))
+    while True:
+        try:
+            x = torch.empty((n,), dtype=dtype, device=device)
+            last_ok = n
+            n += step
+        except RuntimeError as e:
+            print(f"Ошибка при размере {n:,}: {e}")
+            break
 
-        # третий нейрон — XOR = neuron( n1 - n2 - 0.5 )
-        y = torch.heaviside(1*n1 - 1*n2 - 0.5, torch.tensor([0.0]))
-        return y
+    print(f"Максимальный размер для {dtype}: {last_ok:,} элементов")
+    bytes_per_element = torch.tensor([], dtype=dtype).element_size()
+    total_mb = last_ok * bytes_per_element / 1024**2
+    print(f"~{total_mb:.2f} МБ памяти")
+    return last_ok
 
-xor = XOR()
+results = {}
+for dtype in [torch.float32, torch.float64, torch.float16, torch.int32, torch.int64]:
+    results[str(dtype)] = find_max_tensor_size(dtype)
 
-x00 = torch.tensor([0.0, 0.0])
-x01 = torch.tensor([0.0, 1.0])
-x10 = torch.tensor([1.0, 0.0])
-x11 = torch.tensor([1.0, 1.0])
-
-print("(0, 0) :", xor(x00))
-print("(0, 1) :", xor(x01))
-print("(1, 0) :", xor(x10))
-print("(1, 1) :", xor(x11))
+print("\n Результаты:")
+for k, v in results.items():
+    print(f"{k}: {v:,} элементов")
 
 
 
