@@ -128,30 +128,71 @@
 #-----------------------------------------------
 #task 5
 
+# import torch
+
+# class XORNeuron(torch.nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#         self.hidden = torch.nn.Linear(2,2)
+#         self.output = torch.nn.Linear(2,1)
+
+#         self.hidden.weight.data = torch.tensor([[1.0, 1.0], [1.0, 1.0]])
+#         self.hidden.bias.data = torch.tensor([-0.5, -1.5])
+
+#         self.output.weight.data = torch.tensor([[1.0, -1.0]])
+#         self.output.bias.data = torch.tensor([-0.5])
+        
+#     def forward(self, x):
+#         hidden_out = torch.heaviside(self.hidden(x), torch.tensor([0.0]))
+#         return torch.heaviside(self.output(hidden_out), torch.tensor([0.0]))
+# neuron = XORNeuron()
+# print(neuron.hidden.weight, neuron.hidden.bias)
+# print(neuron.output.weight, neuron.output.bias)
+
+# x00 = torch.tensor([0.0, 0.0])
+# x01 = torch.tensor([0.0, 1.0])
+# x10 = torch.tensor([1.0, 0.0])
+# x11 = torch.tensor([1.0, 1.0])
+# print(neuron(x00))
+# print(neuron(x01))
+# print(neuron(x10))
+# print(neuron(x11))
+
+#-------------------------------------
+
+#task 6
+
 import torch
 
-class XORNeuron(torch.nn.Module):
+class XOR(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden = torch.nn.Linear(2,2)
-        self.output = torch.nn.Linear(2,1)
-        self.hidden.weight.data = torch.tensor([[1.0, 1.0], [1.0, 1.0]])
-        self.hidden.bias.data = torch.tensor([-0.5, -1.5])
-
-        self.output.weight.data = torch.tensor([[1.0, -1.0]])
-        self.output.bias.data = torch.tensor([-0.5])
     def forward(self, x):
-        hidden_out = torch.heaviside(self.hidden(x), torch.tensor([0.0]))
-        return torch.heaviside(self.output(hidden_out), torch.tensor([0.0]))
-neuron = XORNeuron()
-print(neuron.hidden.weight, neuron.hidden.bias)
-print(neuron.output.weight, neuron.output.bias)
+        x1 = x[0]
+        x2 = x[1]
+
+        # первый нейрон — OR
+        n1 = torch.heaviside(1*x1 + 1*x2 - 0.5, torch.tensor([0.0]))
+
+        # второй нейрон — AND
+        n2 = torch.heaviside(1*x1 + 1*x2 - 1.5, torch.tensor([0.0]))
+
+        # третий нейрон — XOR = neuron( n1 - n2 - 0.5 )
+        y = torch.heaviside(1*n1 - 1*n2 - 0.5, torch.tensor([0.0]))
+        return y
+
+xor = XOR()
 
 x00 = torch.tensor([0.0, 0.0])
 x01 = torch.tensor([0.0, 1.0])
 x10 = torch.tensor([1.0, 0.0])
 x11 = torch.tensor([1.0, 1.0])
-print(neuron(x00))
-print(neuron(x01))
-print(neuron(x10))
-print(neuron(x11))
+
+print("(0, 0) :", xor(x00))
+print("(0, 1) :", xor(x01))
+print("(1, 0) :", xor(x10))
+print("(1, 1) :", xor(x11))
+
+
+
+
